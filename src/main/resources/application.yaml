@@ -1,0 +1,50 @@
+quarkus:
+  application:
+    name: event-statistics
+  http:
+    cors:
+      ~: true
+      origins: "*"
+    port: ${STATS_SERVICE_PORT}
+    test-port: 0
+  jackson:
+    serialization-inclusion: non-empty
+  log:
+    level: INFO
+    category:
+      "io.quarkus.sample.superheroes":
+        level: DEBUG
+    console:
+      format: "%d{HH:mm:ss} %-5p traceId=%X{traceId}, parentId=%X{parentId}, spanId=%X{spanId}, sampled=%X{sampled} [%c{2.}] (%t) %s%e%n"
+      level: INFO
+      darken: 1
+  otel:
+    resource:
+      attributes: "app=${quarkus.application.name},application=event-stats,system=quarkus-super-heroes"
+    exporter:
+      otlp:
+        traces:
+          endpoint: ${OTEL_URL}
+  devservices:
+    enabled: false
+mp:
+  messaging:
+    connector:
+      smallrye-kafka:
+        apicurio:
+          registry:
+            url: ${APICURIO_URL}
+    incoming:
+      fights:
+        connector: smallrye-kafka
+        topic: fights
+        auto:
+          offset:
+            reset: earliest
+        broadcast: true
+        enable:
+          auto:
+            commit: false
+kafka:
+  bootstrap:
+    servers: ${KAFKA_BOOTSTRAP}
